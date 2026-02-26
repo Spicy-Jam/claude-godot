@@ -1,0 +1,49 @@
+---
+description: Project folder structure and file organization conventions
+alwaysApply: true
+---
+
+# Project Structure
+
+## Folder Layout
+
+```
+res://
+├── scenes/
+│   ├── ui/           # UI scenes (.tscn) and their attached scripts (.gd)
+│   ├── board/        # Board scenes and attached scripts
+│   ├── dice/         # Dice scenes and attached scripts
+│   ├── players/      # Player token scenes and attached scripts
+│   └── ...           # Add subfolders per functional area as needed
+├── scripts/          # Global scripts, autoloads, and custom resource scripts
+├── assets/
+│   ├── models/       # 3D models and meshes
+│   ├── textures/
+│   ├── audio/
+│   └── fonts/
+└── resources/        # .tres resource files (data, themes, etc.)
+```
+
+## Co-location Rule
+
+- A script **attached to a scene** lives in the **same subfolder as that scene**
+- A script that is a **global/autoload** or defines a **custom resource** goes in `scripts/`
+
+```
+# ✅ GOOD
+scenes/ui/hud.tscn
+scenes/ui/hud.gd          ← attached to hud.tscn, stays with it
+
+scripts/turn_manager.gd   ← autoload, goes in scripts/
+scripts/player_data.gd    ← custom Resource class, goes in scripts/
+
+# ❌ BAD
+scenes/ui/hud.tscn
+scripts/hud.gd            ← attached script separated from its scene
+```
+
+## Scene Files
+
+- One `.tscn` file per major game object or UI element
+- Keep scene trees shallow — prefer composition via child scenes over large monolithic scenes
+- Use 3D nodes (`Node3D`, `MeshInstance3D`, `CollisionShape3D`, etc.) for all visual/physical elements

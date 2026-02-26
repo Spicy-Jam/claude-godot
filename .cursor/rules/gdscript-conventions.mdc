@@ -1,0 +1,72 @@
+---
+description: GDScript coding conventions for all scripts in this project
+globs: **/*.gd
+alwaysApply: false
+---
+
+# GDScript Conventions
+
+Use Godot 4.x GDScript 2.0 syntax throughout.
+
+## Script Member Order
+
+Every script must follow this order, top to bottom:
+
+1. `class_name` — **always the first line**, even before `extends`
+2. `extends`
+3. `signal` declarations
+4. `@export` variables
+5. `@onready` variables
+6. Regular variables / constants
+7. Built-in lifecycle functions (`_ready`, `_process`, etc.)
+8. Public functions
+9. Private functions (prefix with `_`)
+
+```gdscript
+# ✅ GOOD
+class_name DiceRoller
+extends Node3D
+
+signal roll_completed(result: int)
+
+@export var sides: int = 6
+
+@onready var mesh: MeshInstance3D = $Mesh
+
+var _current_value: int = 0
+
+func _ready() -> void:
+    pass
+
+func roll() -> int:
+    _current_value = randi_range(1, sides)
+    roll_completed.emit(_current_value)
+    return _current_value
+
+func _calculate_result() -> int:
+    return _current_value
+```
+
+```gdscript
+# ❌ BAD — extends before class_name, no types, mixed order
+extends Node3D
+class_name DiceRoller
+
+var current_value
+@export var sides
+
+func roll():
+    pass
+```
+
+## Typing
+
+- Always use static types for variables, parameters, and return values
+- Use `->` return type annotations on all functions
+
+## Naming
+
+- Variables and functions: `snake_case`
+- Classes and custom resources: `PascalCase`
+- Private members: prefix with `_`
+- Constants: `ALL_CAPS_SNAKE_CASE`

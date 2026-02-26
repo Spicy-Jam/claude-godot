@@ -1,0 +1,68 @@
+---
+description: Game architecture patterns — composition, signals, and turn management
+alwaysApply: true
+---
+
+# Game Architecture
+
+## Composition Over Inheritance
+
+- Prefer building behavior by **combining child nodes** rather than extending custom classes
+- Only extend built-in Godot types (e.g. `extends Node3D`, `extends Resource`)
+- Avoid chains of custom class inheritance — if two classes share logic, extract it into a shared child node or a helper resource instead
+
+```gdscript
+# ✅ GOOD — compose behavior via child nodes
+class_name PlayerToken
+extends Node3D
+# MovementComponent, AnimationComponent etc. are child nodes
+
+# ❌ BAD — deep inheritance chain
+class_name PlayerToken
+extends BoardPiece  # which extends MovableObject which extends ...
+```
+
+## Signals for Loose Coupling
+
+- Use signals to communicate **between nodes** — never call up the tree directly
+- Dice results, turn changes, and game events should all be emitted as signals
+- Connect signals in `_ready()` or via the Godot editor, not scattered through gameplay logic
+
+```gdscript
+# ✅ GOOD
+signal roll_completed(value: int)
+
+func roll() -> void:
+    roll_completed.emit(randi_range(1, sides))
+
+# ❌ BAD — direct parent/sibling call
+func roll() -> void:
+    get_parent().get_node("TurnManager").advance_turn(randi_range(1, sides))
+```
+
+## Turn System
+
+- A single `TurnManager` autoload manages whose turn it is
+- Supports exactly 4 players in a "pass the controller" flow
+- Turn progression is driven by signals, not polling
+- Player state is stored as a custom `Resource` (`PlayerData`) in `scripts/`
+
+```gdscript
+# scripts/turn_manager.gd
+class_name TurnManager
+extends Node
+
+signal turn_changed(player_index: int)
+
+const PLAYER_COUNT: int = 4
+var current_player: int = 0
+
+func advance_turn() -> void:
+    current_player = (current_player + 1) % PLAYER_COUNT
+    turn_changed.emit(current_player)
+```
+
+## Custom Resources for Data
+
+- Use `class_name` + `extends Resource` for player data, game state snapshots, board config, etc.
+- Store `.tres` files in `res://resources/`
